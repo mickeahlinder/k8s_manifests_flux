@@ -8,10 +8,10 @@ metadata:
 spec:
   interval: 1m0s
   ref:
-    branch: master
+    branch: main
   secretRef:
     name: flux-system
-  url: ssh://git@github.com:mickeahlinder/k8s_manifests_flux.git
+  url: https://github.com/mickeahlinder/k8s_manifests_flux.git
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
@@ -20,7 +20,20 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./
+  path: ./flux-system
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: kubernetes-cluster-manifests
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: kubernetes-cluster-manifests-apps
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/service2
   prune: true
   sourceRef:
     kind: GitRepository

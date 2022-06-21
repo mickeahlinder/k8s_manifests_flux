@@ -1,58 +1,58 @@
----
-# Specification:
-# https://docs.fluxcd.io/projects/helm-operator/en/stable/references/helmrelease-custom-resource/
-#
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  name: service2
-  namespace: service2
-spec:
-  interval: 10m
-  releaseName: service2
-  timeout: 15m
-  chart:
-    spec:
-      chart: ./apps/service2/charts/service2
-      sourceRef:
-        kind: GitRepository
-        name: kubernetes-cluster-manifests
-        namespace: flux-system
-  values:
-    image:
-      repository: azure-acr.azurecr.io/service2
-      tag: "master-e2f47cc-1655727243"
-    resources:
-      requests:
-        cpu: 750m
-        memory: 1024Mi
-      limits:
-        cpu: 1500m
-        memory: 2560Mi
-    autoscaling:
-      enabled: false
-      minReplicas: 4
-      maxReplicas: 6
-    # replicaCount is used when autoscaling is false.
-    replicaCount: 4
-    affinity:
-      podAntiAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                  - key: app.kubernetes.io/instance
-                    operator: In
-                    values:
-                      - service2
-              topologyKey: kubernetes.io/hostname
-    podLabels:
-      aadpodidbinding: az-backend-id
-      version: v1
-    podAnnotations:
-      ## Set one resource override and the rest will be limitless, otherwise they all will be default.
-      ## (proxyCPU/proxyCPULimit/proxyMemory/proxyMemoryLimit).
-      sidecar.istio.io/proxyCPU: 10m
-    migrations:
-      run: false
+# ---
+Specification:
+https://docs.fluxcd.io/projects/helm-operator/en/stable/references/helmrelease-custom-resource/
+
+# apiVersion: helm.toolkit.fluxcd.io/v2beta1
+# kind: HelmRelease
+# metadata:
+  # name: service2
+  # namespace: service2
+# spec:
+  # interval: 10m
+  # releaseName: service2
+  # timeout: 15m
+  # chart:
+    # spec:
+      # chart: ./apps/service2/charts/service2
+      # sourceRef:
+        # kind: GitRepository
+        # name: kubernetes-cluster-manifests
+        # namespace: flux-system
+  # values:
+    # image:
+      # repository: azure-acr.azurecr.io/service2
+      # tag: "master-e2f47cc-1655727243"
+    # resources:
+      # requests:
+        # cpu: 750m
+        # memory: 1024Mi
+      # limits:
+        # cpu: 1500m
+        # memory: 2560Mi
+    # autoscaling:
+      # enabled: false
+      # minReplicas: 4
+      # maxReplicas: 6
+    replicaCount is used when autoscaling is false.
+    # replicaCount: 4
+    # affinity:
+      # podAntiAffinity:
+        # preferredDuringSchedulingIgnoredDuringExecution:
+          # - weight: 100
+            # podAffinityTerm:
+              # labelSelector:
+                # matchExpressions:
+                  # - key: app.kubernetes.io/instance
+                    # operator: In
+                    # values:
+                      # - service2
+              # topologyKey: kubernetes.io/hostname
+    # podLabels:
+      # aadpodidbinding: az-backend-id
+      # version: v1
+    # podAnnotations:
+      # Set one resource override and the rest will be limitless, otherwise they all will be default.
+      # (proxyCPU/proxyCPULimit/proxyMemory/proxyMemoryLimit).
+      # sidecar.istio.io/proxyCPU: 10m
+    # migrations:
+      # run: false
