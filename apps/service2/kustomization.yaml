@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# resources:
-- helmrelease.yml
+resources:
+# - helmrelease.yml
 # - servicemonitor.yaml
 # - flux-alert-service2.yaml
 # - flux-alert-staging-service2.yaml
