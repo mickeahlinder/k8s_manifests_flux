@@ -1,6 +1,6 @@
 # ---
-Specification:
-https://docs.fluxcd.io/projects/helm-operator/en/stable/references/helmrelease-custom-resource/
+# Specification:
+# https://docs.fluxcd.io/projects/helm-operator/en/stable/references/helmrelease-custom-resource/
 
 # apiVersion: helm.toolkit.fluxcd.io/v2beta1
 # kind: HelmRelease
