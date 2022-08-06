@@ -3,8 +3,6 @@ kind: Kustomization
 resources:
 - gotk-sync.yaml
 - gotk-components.yaml
-- azureidentity.yaml
-- azureidentitybinding.yaml
 patches:
 - target:
     version: v1
