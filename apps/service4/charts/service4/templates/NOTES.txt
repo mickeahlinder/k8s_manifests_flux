@@ -1,0 +1,4 @@
+Service: {{ include "service4.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+Image:   {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+Labels:
+{{- include "service4.labels" . | nindent 9 }}

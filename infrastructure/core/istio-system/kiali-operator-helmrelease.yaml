@@ -1,0 +1,39 @@
+# Latest version:
+# https://github.com/kiali/kiali-operator/releases
+#
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: kiali-operator
+  namespace: istio-system
+spec:
+  interval: 10m
+  releaseName: kiali-operator
+  chart:
+    spec:
+      chart: kiali-operator
+      version: v1.48.0
+      sourceRef:
+        kind: HelmRepository
+        name: kiali-operator-helm-repository
+        namespace: istio-system
+  values:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
+    watchNamespace: istio-system
+    cr:
+      create: false # do not create an empty default kiali, wait for settings
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: kiali-operator-helm-repository
+  namespace: istio-system
+spec:
+  interval: 10m
+  url: https://kiali.org/helm-charts

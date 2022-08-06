@@ -1,0 +1,45 @@
+# Specification:
+# https://docs.fluxcd.io/projects/helm-operator/en/stable/references/helmrelease-custom-resource/
+#
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: staging-service2
+  namespace: service2
+spec:
+  interval: 10m
+  releaseName: staging-service2
+  chart:
+    spec:
+      # The path of the chart relative to the repository root
+      chart: ./apps/service2/charts/service2
+      # The reference to the GitRepository
+      sourceRef:
+        kind: GitRepository
+        name: kubernetes-cluster-manifests
+        # Optional, defaults to the namespace of the HelmRelease
+        namespace: flux-system
+  values:
+    image:
+      repository: azure-acr.azurecr.io/service2 # {"$imagepolicy": "flux-system:service2-policy:name"}
+      tag: "master-e2f47cc-1655791526" # {"$imagepolicy": "flux-system:service2-policy:tag"}
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 1
+    podLabels:
+      aadpodidbinding: az-backend-id
+      version: staging-v1
+    podAnnotations:
+      ## Set one resource override and the rest will be limitless, otherwise they all will be default.
+      ## (proxyCPU/proxyCPULimit/proxyMemory/proxyMemoryLimit).
+      sidecar.istio.io/proxyCPU: 10m
+    migrations:
+      run: true

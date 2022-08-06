@@ -1,0 +1,47 @@
+{{- if .Values.migrations.run -}}
+{{- $resourceName := printf "%s-%s" .Release.Name "migrations" -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ $resourceName }}"
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ $resourceName | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  # Should be able to handle any transient errors with 3 retries, total runtime will
+  # be 110s at most (10s,20s,40s exponential back-off delay between each run)
+  backoffLimit: 3
+  template:
+    metadata:
+      name: "{{ $resourceName }}"
+      labels:
+        app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+        app.kubernetes.io/instance: {{ $resourceName | quote }}
+        helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        sidecar.istio.io/inject: "false"
+      {{- if .Values.podLabels }}
+      {{- range $key, $value := .Values.podLabels }}
+        {{ $key }}: {{ $value | quote }}
+      {{- end }}
+      {{- end }}        
+    spec:
+      restartPolicy: Never
+      volumes:
+      - name: appsettings-production-json-secrets-store-inline
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: {{ .Values.secretProviderClassName }}
+      containers:
+      - name: service2-db-migrations-job
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        workingDir: /Backend.CLI
+        command: ["/Backend.CLI/Backend.CLI","migrations"]
+{{- end }}

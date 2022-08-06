@@ -1,0 +1,54 @@
+# Specification:
+# https://docs.fluxcd.io/projects/helm-operator/en/stable/references/helmrelease-custom-resource/
+#
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: service6
+  namespace: service6
+spec:
+  interval: 10m
+  releaseName: service6
+  chart:
+    spec:
+      chart: ./apps/service6/charts/service6
+      sourceRef:
+        kind: GitRepository
+        name: kubernetes-cluster-manifests
+        namespace: flux-system
+  values:
+    image:
+      repository: azure-acr.azurecr.io/service2 # {"$imagepolicy": "flux-system:service6-image-policy:name"}
+      tag: "master-e2f47cc-1655791526" # {"$imagepolicy": "flux-system:service6-image-policy:tag"}
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 2
+    # replicaCount is used when autoscaling is false.
+    replicaCount: 1
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/instance
+                operator: In
+                values:
+                - service6
+            topologyKey: kubernetes.io/hostname
+    podLabels:
+      aadpodidbinding: az-backend-id
+      version: service6-v1
+    podAnnotations:
+      ## Set one resource override and the rest will be limitless, otherwise they all will be default.
+      ## (proxyCPU/proxyCPULimit/proxyMemory/proxyMemoryLimit).
+      sidecar.istio.io/proxyCPU: 10m

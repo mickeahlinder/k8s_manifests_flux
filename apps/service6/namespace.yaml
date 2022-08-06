@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: service6
+  labels:
+    prometheus/serviceMonitor: "true"
+    istio-injection: "enabled"

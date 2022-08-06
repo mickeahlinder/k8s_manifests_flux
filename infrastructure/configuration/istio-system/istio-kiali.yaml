@@ -1,0 +1,96 @@
+# Specification
+# https://github.com/kiali/kiali-operator/blob/master/deploy/kiali/kiali_cr.yaml
+# 
+apiVersion: kiali.io/v1alpha1
+kind: Kiali
+metadata:
+  name: kiali
+  namespace: istio-system
+spec:
+  api:
+    namespaces:
+      exclude:
+      - istio-operator
+      - kube.*
+      - openshift.*
+      - ibm.*
+      - kiali-operator
+      - cert-manager
+      - flux
+      - logging
+      - default
+  auth:
+    strategy: anonymous
+  deployment:
+    accessible_namespaces:
+    - '**'
+    custom_dashboards:
+      excludes:
+      - ""
+      includes:
+      - '*'
+    ingress_enabled: false
+    logger:
+      log_level: info
+      log_format: json
+    namespace: istio-system
+  external_services:
+    grafana:
+      dashboards:
+      - name: Istio Service Dashboard
+        variables:
+          namespace: var-namespace
+          service: var-service
+      - name: Istio Workload Dashboard
+        variables:
+          namespace: var-namespace
+          workload: var-workload
+      component_status:
+        app_label: grafana
+        is_core: false
+        namespace: monitoring
+      enabled: true
+      in_cluster_url: http://prometheus-grafana.monitoring
+      url: "http://prometheus-grafana.monitoring"
+    istio:
+      component_status:
+        components:
+        - app_label: istiod
+          is_core: true
+          namespace: istio-system
+        - app_label: istio-ingressgateway
+          is_core: true
+          namespace: istio-ingress
+        # Disable istio-egress namespace, since its disabled in istio
+        # - app_label: istio-egressgateway
+        #   is_core: false
+        #   namespace: istio-egress
+      istio_identity_domain: svc.cluster.local
+      istio_sidecar_annotation: sidecar.istio.io/status
+      istio_status_enabled: true
+      url_service_version: http://istiod:15014/version
+    prometheus:
+      auth:
+        ca_file: ""
+        insecure_skip_verify: false
+        password: ""
+        token: ""
+        type: none
+        use_kiali_token: false
+        username: ""
+      component_status:
+        app_label: prometheus
+        is_core: false
+        namespace: monitoring
+      custom_metrics_url: http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+      url: http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+  istio_component_namespaces:
+    grafana: monitoring
+    istiod: istio-system
+    pilot: istio-system
+    prometheus: monitoring
+    tracing: istio-system
+  server:
+    port: 20001
+    web_fqdn: "kiali.monitoring.net"
+    web_root: /

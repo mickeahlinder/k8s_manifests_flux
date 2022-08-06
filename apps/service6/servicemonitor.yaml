@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: service6-servicemonitor
+  namespace: service6
+  labels:
+    monitoring: service6-metrics
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: service6
+  namespaceSelector:
+    matchNames:
+      - service6
+  endpoints:
+  - targetPort: 9091
+    path: /metrics-yba1c2id9z2wnqsx
+    interval: 15s

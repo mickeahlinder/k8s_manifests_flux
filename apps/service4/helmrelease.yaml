@@ -1,0 +1,30 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: service4
+  namespace: service4
+spec:
+  interval: 10m
+  releaseName: service4
+  chart:
+    spec:
+      chart: ./apps/service4/charts/service4
+      sourceRef:
+        kind: GitRepository
+        name: kubernetes-cluster-manifests
+        namespace: flux-system
+  values:
+    image:
+      repository: azure-acr.azurecr.io/service4 # {"$imagepolicy": "flux-system:service4-image-policy:name"}
+      tag: "master-3da6782-1655465518" # {"$imagepolicy": "flux-system:service4-image-policy:tag"}
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+    podAnnotations:
+      ## Set one resource override and the rest will be limitless, otherwise they all will be default.
+      ## (proxyCPU/proxyCPULimit/proxyMemory/proxyMemoryLimit).
+      sidecar.istio.io/proxyCPU: 10m

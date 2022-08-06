@@ -1,0 +1,13 @@
+apiVersion: notification.toolkit.fluxcd.io/v1beta1
+kind: Alert
+metadata:
+  name: service2-staging-helmrelase-info
+  namespace: flux-system
+spec:
+  eventSeverity: info
+  eventSources:
+  - kind: HelmRelease
+    name: staging-service2
+    namespace: service2
+  providerRef:
+    name: slack

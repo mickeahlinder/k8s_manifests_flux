@@ -1,0 +1,8 @@
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImageRepository
+metadata:
+  name: service7
+  namespace: flux-system
+spec:
+  image: azure-acr.azurecr.io/service7
+  interval: 1m0s

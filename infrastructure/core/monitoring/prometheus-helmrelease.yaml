@@ -1,0 +1,125 @@
+# Latest version
+# https://github.com/prometheus-community/helm-charts/releases
+# https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/Chart.yaml
+# 
+# Req. for manual debug setup:
+#   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#   helm repo update
+# Manual debug run override:
+#   helm upgrade -i prometheus prometheus-community/kube-prometheus-stack -n monitoring -f values/prometheus.yaml --version 10.1.1
+#
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  interval: 10m
+  releaseName: prometheus
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      version: 13.3.0
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-helm-repository
+        namespace: monitoring
+  values:
+    prometheus:
+      enabled: true
+      prometheusSpec:
+        logFormat: json
+        serviceMonitorNamespaceSelector:
+          matchLabels:
+            prometheus/serviceMonitor: "true"
+        serviceMonitorSelector: {}
+        serviceMonitorSelectorNilUsesHelmValues: false
+        additionalScrapeConfigs: []
+        externalUrl: https://prometheus.monitoring.net
+        # storageSpec:
+        #   volumeClaimTemplate:
+        #     spec:
+        #       storageClassName: azurefile
+        #       accessModes: ["ReadWriteOnce"]
+        #       resources:
+        #         requests:
+        #           storage: 10Gi
+    grafana:
+      enabled: true
+      grafana.ini:
+        server:
+          root_url: https://grafana.monitoring.net
+        auth.azuread:
+          name: Azure AD
+          enabled: true
+          allow_sign_up: true
+          client_id: $__file{/mnt/secret-store/grafana-azuread-application-id}
+          client_secret: $__file{/mnt/secret-store/grafana-azuread-client-secret}
+          scopes: openid email profile
+          auth_url: https://login.microsoftonline.com/$__file{/mnt/secret-store/azuread-tenant-id}/oauth2/v2.0/authorize
+          token_url: https://login.microsoftonline.com/$__file{/mnt/secret-store/azuread-tenant-id}/oauth2/v2.0/token
+          allowed_domains:
+      dashboardProviders:
+        dashboardproviders.yaml:
+          apiVersion: 1
+          providers:
+          - name: 'default'
+            folder: ''
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards
+      dashboards:
+        default:
+          istio-mesh-dashboard:
+            gnetId: 7639
+            revision: 48 # istio 1.8.2
+            datasource: Prometheus
+          istio-service-dashboard:
+            gnetId: 7636
+            revision: 48 # istio 1.8.2
+            datasource: Prometheus
+          istio-workload-dashboard:
+            gnetId: 7630
+            revision: 48 # istio 1.8.2
+            datasource: Prometheus
+          istio-performance-dashboard:
+            gnetId: 11829
+            revision: 48 # istio 1.8.2
+            datasource: Prometheus
+          istio-control-plane-dashboard:
+            gnetId: 7645
+            revision: 48 # istio 1.8.2
+            datasource: Prometheus
+      sidecar:
+        dashboards:
+          enabled: true
+    prometheusOperator:
+      enabled: true
+      createCustomResource: false # Removes error 'skipping unknown hook: \"crd-install\""'
+      logFormat: json
+    pushgateway:
+      enabled: false
+    alertmanager:
+      enabled: true
+      alertmanagerSpec:
+        logFormat: json
+        storage:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: azurefile
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 10Gi
+        externalUrl: https://alertmanager.monitoring.net
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: prometheus-helm-repository
+  namespace: monitoring
+spec:
+  interval: 10m
+  url: https://prometheus-community.github.io/helm-charts

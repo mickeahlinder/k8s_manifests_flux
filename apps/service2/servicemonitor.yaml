@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: service2-servicemonitor
+  namespace: service2
+  labels:
+    monitoring: service2-metrics
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: service2
+  namespaceSelector:
+    matchNames:
+      - service2
+  endpoints:
+  - targetPort: 9091
+    path: /metrics-yba1c2id9z2wnqsx
+    interval: 15s

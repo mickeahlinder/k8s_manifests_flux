@@ -1,0 +1,7 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- flux-image-policy.yaml
+- flux-imagerepo.yaml
+- helmrelease.yaml
+- namespace.yaml

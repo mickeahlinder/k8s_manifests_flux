@@ -1,0 +1,26 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: service5
+  namespace: service5
+spec:
+  interval: 10m
+  releaseName: service5
+  chart:
+    spec:
+      chart: ./apps/service5/charts/service5
+      sourceRef:
+        kind: GitRepository
+        name: kubernetes-cluster-manifests
+        namespace: flux-system
+  values:
+    image:
+      repository: azure-acr.azurecr.io/service5 # {"$imagepolicy": "flux-system:service5-image-policy:name"}
+      tag: "master-86ed082-1651661846" # {"$imagepolicy": "flux-system:service5-image-policy:tag"}
+    resources:
+      requests:
+        cpu: 200m
+        memory: 768Mi
+      limits:
+        cpu: 200m
+        memory: 768Mi

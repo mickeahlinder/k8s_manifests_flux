@@ -1,0 +1,14 @@
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImagePolicy
+metadata:
+  name: service6-image-policy
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: service6
+  filterTags:
+    pattern: '^master-[a-fA-F0-9]+-(?P<ts>.*)'
+    extract: '$ts'
+  policy:
+     numerical:
+      order: asc

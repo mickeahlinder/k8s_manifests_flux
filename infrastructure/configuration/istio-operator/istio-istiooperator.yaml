@@ -1,0 +1,95 @@
+# Specification:
+# https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/
+#
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: istio
+  namespace: istio-system
+spec:
+  profile: default
+  # Traffic management feature
+  components:
+    base:
+      enabled: true
+    # Istiod
+    pilot:
+      enabled: true
+      k8s:
+        hpaSpec:
+          minReplicas: 2
+          maxReplicas: 3
+        # https://istio.io/latest/docs/ops/deployment/performance-and-scalability/ 
+        # [Istio 1.8.2] Istiod uses 1 vCPU and 1.5 GB of memory.
+        # The Istio load tests mesh consists of 1000 services and 2000 sidecars with 70,000 mesh-wide requests per second.
+        resources:
+          requests:
+            cpu: 150m
+            memory: 384Mi
+          limits:
+            cpu: 250m
+            memory: 1024Mi
+    ingressGateways:
+    - name: istio-ingressgateway
+      namespace: istio-ingress
+      enabled: true
+      k8s:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - istio-ingressgateway
+                topologyKey: kubernetes.io/hostname
+        hpaSpec:
+          minReplicas: 3
+          maxReplicas: 4
+        resources:
+          requests:
+            cpu: 150m
+            memory: 192Mi
+          limits:
+            cpu: 400m
+            memory: 384Mi
+        service:
+          externalTrafficPolicy: "Local" # preserve the client source IP
+    egressGateways:
+    - name: istio-egressgateway
+      enabled: false
+  meshConfig:
+    # Access log for istio-proxy (Envoy proxy). Enable with accessLogFile: "/dev/stdout". Disable with accessLogFile: "".
+    accessLogFile: ""
+    accessLogEncoding: "JSON"
+    pathNormalization:
+      normalization: MERGE_SLASHES
+  # Overrides for default values.yaml. This is a validated pass-through to Helm templates.
+  values:
+    global:
+      logging:
+        level: "default:info"
+      logAsJson: true
+      # Sidecar proxy
+      # https://istio.io/latest/docs/ops/deployment/performance-and-scalability/ 
+      # [Istio 1.8.2] proxy uses 0.35 vCPU and 40 MB memory per 1000 requests per second going through the proxy.
+      proxy:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 350m
+            memory: 128Mi
+      # istio-init - init container, used to configure iptables.
+      proxy_init:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 10Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi

@@ -1,0 +1,35 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: service7
+  namespace: service7
+spec:
+  interval: 10m
+  releaseName: service7
+  chart:
+    spec:
+      # The path of the chart relative to the repository root
+      chart: ./apps/service7/charts/service7
+      # The reference to the GitRepository
+      sourceRef:
+        kind: GitRepository
+        name: kubernetes-cluster-manifests
+        # Optional, defaults to the namespace of the HelmRelease
+        namespace: flux-system
+  values:
+    image:
+      repository: azure-acr.azurecr.io/service7 # {"$imagepolicy": "flux-system:service7-image-policy:name"}
+      tag: "master-fe038a5-1655792814" # {"$imagepolicy": "flux-system:service7-image-policy:tag"}
+    env:
+      frontendUrl: "https://tune.ngenic.se"
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+    podAnnotations:
+      ## Set one resource override and the rest will be limitless, otherwise they all will be default.
+      ## (proxyCPU/proxyCPULimit/proxyMemory/proxyMemoryLimit).
+      sidecar.istio.io/proxyCPU: 10m
